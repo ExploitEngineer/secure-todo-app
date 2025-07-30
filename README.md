@@ -39,7 +39,7 @@ A secure and modern full-stack Todo application built with React, TailwindCSS, E
 
 ```bash
 # Clone the repository
-$ git clone https://github.com/your-username/secure-todo-app.git
+$ git clone https://github.com/ExploitEngineer/secure-todo-app.git
 
 # Navigate into the project directory
 $ cd secure-todo-app

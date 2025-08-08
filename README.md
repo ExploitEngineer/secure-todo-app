@@ -4,36 +4,54 @@ A secure and modern full-stack Todo application built with React, TailwindCSS, E
 
 ## Features
 
-* ✅ JWT-based Authentication
-* 🔐 Password hashing with bcrypt
-* 📋 CRUD for Todos
-* 📦 SQLite database via Sequelize ORM
-* 🎨 TailwindCSS for UI styling
-* ⚛️ React Frontend
-* ⚙️ Express.js Backend
-* 🧪 Secure and scalable folder structure
+- ✅ JWT-based Authentication
+- 🔐 Password hashing with bcrypt
+- 📋 CRUD for Todos
+- 📦 SQLite database via Sequelize ORM
+- 🎨 TailwindCSS for UI styling
+- ⚛️ React Frontend
+- ⚙️ Express.js Backend
+- 🧪 Secure and scalable folder structure
+- real-time communication using socket.io
 
 ## Technologies Used
 
 ### Frontend
 
-* React
-* TailwindCSS
+- React
+- TailwindCSS
+- socket.io-client
 
 ### Backend
 
-* Node.js
-* Express.js
-* Sequelize ORM
-* SQLite
-* JWT (jsonwebtoken)
-* bcryptjs
+- Node.js
+- Express.js
+- Sequelize ORM
+- SQLite
+- JWT (jsonwebtoken)
+- bcryptjs
+- socket.io
 
 ## Getting Started
 
 ### Prerequisites
 
-* Node.js & npm
+- Node.js & npm
+
+## Introduction to Socket.IO
+
+Socket.IO is a JavaScript library that makes real-time, bidirectional communication between browsers (or other clients) and a Node.js server easy. It gives you event-based sockets with lots of useful features (auto reconnect, rooms, namespaces, fallbacks) so you can build chat apps, live dashboards, multiplayer games, notifications, collaborative editors, etc.
+
+## What Socket.IO is
+
+- A client + server library for realtime messaging (JS on both browser and Node).
+- Wraps a protocol on top of WebSocket and HTTP long-polling — exposing a nice event-based API: `socket.emit('myEvent', data)` and `socket.on('myEvent', handler)`.
+- Adds features **WebSocket alone does not** provide out of the box: automatic reconnection, heartbeats, acknowledgement callbacks, rooms, namespaces, and a small framing/protocol layer.
+
+### Key takeaways
+
+- Socket.IO = event-driven realtime library (client + server).
+- Adds reliability & higher-level features beyond raw WebSockets.
 
 ### Installation
 
@@ -62,15 +80,15 @@ $ npm install
 #### Start Backend
 
 ```bash
-$ cd server
-$ npm run dev
+cd server
+npm run dev
 ```
 
 #### Start Frontend
 
 ```bash
-$ cd client
-$ npm start
+cd client
+npm start
 ```
 
 ## Folder Structure
@@ -90,10 +108,10 @@ secure-todo-app/
 
 ## Security Highlights
 
-* Passwords hashed with `bcrypt`
-* JWT-based session management
-* Protected routes on both frontend & backend
-* Secure API design practices
+- Passwords hashed with `bcrypt`
+- JWT-based session management
+- Protected routes on both frontend & backend
+- Secure API design practices
 
 ## License
 

@@ -1,7 +1,8 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+import express from "expres";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { User } from "../models";
+
 require("dotenv").config();
 
 const router = express.Router();

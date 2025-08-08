@@ -1,6 +1,6 @@
-const express = require("express");
-const { Todo } = require("../models");
-const verifyUser = require("../middleware/verifyUser");
+import express from "express";
+import { Todo } from "../models";
+import verifyUser from "../middleware/verifyUser";
 
 const router = express.Router();
 

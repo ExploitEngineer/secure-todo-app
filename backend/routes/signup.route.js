@@ -1,6 +1,7 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const { User } = require("../models");
+import express from "express";
+import bcrypt from "bcrypt";
+import { User } from "../models";
+
 require("dotenv").config();
 
 const router = express.Router();
@@ -9,6 +10,7 @@ router.post("/signup", async (req, res) => {
   const {
     body: { username, email, password },
   } = req;
+
   try {
     bcrypt.genSalt(10, function (err, salt) {
       if (err) return res.send("error generating salt");

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -26,11 +27,13 @@ export default function SignUp() {
         });
 
         const data = await response.json();
-        console.log(data);
+        console.log("Signup Response:", data);
 
         if (!response.ok) {
+          toast.error("something went wrong");
           throw new Error("Error creating user");
         }
+        toast.success("Successfully Signed up!");
         navigate("/login");
       } catch (err) {
         console.error(err.message);

@@ -1,36 +1,39 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-require("dotenv").config();
-const { sequelize } = require("./models");
-const { Umzug, SequelizeStorage } = require("umzug");
+import cors from "cors";
+import express from "express";
+import { sequelize } from "./models";
+import cookieParser from "cookie-parser";
+import { Umzug, SequelizeStorage } from "umzug";
+import http from "http";
 
-const indexRoute = require("./routes/index.route");
-const signupRoute = require("./routes/signup.route");
-const loginRoute = require("./routes/login.route");
-const todoRoute = require("./routes/todo.route");
-const userRoute = require("./routes/user.route");
-const logoutRoute = require("./routes/logout.route");
+require("dotenv").config();
+
+import signupRoute from "./routes/signup.route";
+import logoutRoute from "./routes/logout.route";
+import indexRoute from "./routes/index.route";
+import loginRoute from "./routes/login.route";
+import todoRoute from "./routes/todo.route";
+import userRoute from "./routes/user.route";
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(
   cors({
     origin: "http://localhost:5173", // Frontend origin
     credentials: true, // Allow cookies to be sent
-  })
+  }),
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
 // Routes
+app.use(loginRoute);
 app.use(indexRoute);
 app.use(signupRoute);
-app.use(loginRoute);
-app.use("/todos", todoRoute);
 app.use("/api", userRoute);
-app.use("/logout", logoutRoute)
+app.use("/todos", todoRoute);
+app.use("/logout", logoutRoute);
 
 const runMigrations = async () => {
   const umzug = new Umzug({
@@ -53,8 +56,8 @@ const PORT = process.env.PORT || 3001;
     await runMigrations();
     console.log("Migrations applied");
 
-    app.listen(PORT, () =>
-      console.log(`Server is running on http://127.0.0.1:${PORT}`)
+    server.listen(PORT, () =>
+      console.log(`Server is running on http://127.0.0.1:${PORT}`),
     );
   } catch (err) {
     console.error("Error starting server:", err);

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,8 +25,12 @@ export default function Login() {
         });
 
         if (!response.ok) {
+          toast.error("Invalid credentials");
+          form.email.value = "";
+          form.password.value = "";
           throw new Error("Something went wrong");
         }
+        toast.success("Successfully logged in.");
         navigate("/dashboard");
       } catch (err) {
         console.log(err.message);

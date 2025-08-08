@@ -1,9 +1,9 @@
-const express = require("express");
-const { User } = require("../models");
+import express from "express";
+import { User } from "../models";
 
 const router = express.Router();
 
-router.get("/users", async (req, res) => {
+router.get("/users", async (_req, res) => {
   try {
     const users = await User.findAll();
     res.status(200).json(users);

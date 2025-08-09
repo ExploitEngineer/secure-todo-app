@@ -47,48 +47,48 @@ export function AllUsers() {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-b from-zinc-900 to-zinc-800 py-8 px-6">
-      <div className="w-full flex justify-between items-center max-w-6xl mb-10">
-        <h1 className="text-white font-bold text-3xl tracking-tight">
+    <div className="flex min-h-screen w-full flex-col items-center bg-gradient-to-b from-zinc-900 to-zinc-800 px-6 py-8">
+      <div className="mb-10 flex w-full max-w-6xl items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight text-white">
           Users List
         </h1>
         <Link to="/dashboard">
-          <Button className="text-white cursor-pointer text-sm font-medium rounded-lg py-5 px-5 bg-amber-600 hover:bg-amber-500 transition-all duration-200 shadow-md">
+          <Button className="cursor-pointer rounded-lg bg-amber-600 px-5 py-5 text-sm font-medium text-white shadow-md transition-all duration-200 hover:bg-amber-500">
             Dashboard
           </Button>
         </Link>
       </div>
 
-      <div className="relative bg-zinc-800/80 backdrop-blur-md shadow-xl rounded-2xl w-full max-w-6xl min-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800 p-6">
-        <div className="w-full flex items-center justify-end">
+      <div className="scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800 relative min-h-[400px] w-full max-w-6xl overflow-y-auto rounded-2xl bg-zinc-800/80 p-6 shadow-xl backdrop-blur-md">
+        <div className="flex w-full items-center justify-end">
           <Button onClick={handleClick} className="me-4 cursor-pointer">
             <RotateCw ref={iconRef} color="white" strokeWidth={1.5} />
           </Button>
         </div>
-        <ul className="w-full flex flex-col gap-4 mt-4">
+        <ul className="mt-4 flex w-full flex-col gap-4">
           {users.length === 0 ? (
-            <p className="text-white text-center text-lg font-light py-10">
+            <p className="py-10 text-center text-lg font-light text-white">
               No users yet...
             </p>
           ) : (
             users.map((user, idx) => (
               <li
                 key={idx}
-                className="flex items-center justify-between p-4 rounded-xl bg-zinc-700/60 hover:bg-zinc-700 transition-colors duration-200 shadow-sm"
+                className="flex items-center justify-between rounded-xl bg-zinc-700/60 p-4 shadow-sm transition-colors duration-200 hover:bg-zinc-700"
               >
                 <div className="flex items-center gap-4">
                   <img
                     src="/assets/images/user.jpg"
-                    className="w-12 h-12 rounded-full border border-zinc-500 shadow-sm object-cover"
+                    className="h-12 w-12 rounded-full border border-zinc-500 object-cover shadow-sm"
                     alt="user"
                   />
-                  <h3 className="text-white text-base font-medium tracking-wide">
+                  <h3 className="text-base font-medium tracking-wide text-white">
                     {user.username}
                   </h3>
                 </div>
                 <Button
                   onClick={handleCollab(user.id)}
-                  className="py-2 px-6 bg-blue-600 hover:bg-blue-500 transition-colors duration-200 text-white font-medium text-sm rounded-lg cursor-pointer shadow-md"
+                  className="cursor-pointer rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-md transition-colors duration-200 hover:bg-blue-500"
                 >
                   Collab
                 </Button>

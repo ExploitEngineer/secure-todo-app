@@ -39,26 +39,26 @@ export default function Login() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-zinc-800 flex items-center justify-center">
+    <div className="flex min-h-screen w-full items-center justify-center bg-zinc-800">
       <form className="flex flex-col gap-4" onSubmit={handleFormSubmit}>
-        <h1 className="text-white font-bold text-2xl">Login</h1>
+        <h1 className="text-2xl font-bold text-white">Login</h1>
         <input
           name="email"
           required
           type="email"
           placeholder="Email"
-          className="text-white placeholder:text-sm border border-blue-500 rounded-lg px-4 py-2 outline-none"
+          className="rounded-lg border border-blue-500 px-4 py-2 text-white outline-none placeholder:text-sm"
         />
         <input
           name="password"
           required
           type="password"
           placeholder="Password"
-          className="text-white placeholder:text-sm border border-blue-500 rounded-lg px-4 py-2 outline-none"
+          className="rounded-lg border border-blue-500 px-4 py-2 text-white outline-none placeholder:text-sm"
         />
         <button
           type="submit"
-          className="w-full text-white font-medium py-2 px-8 rounded-lg cursor-pointer bg-zinc-700 hover:bg-blue-600 duration-300 transition-all"
+          className="w-full cursor-pointer rounded-lg bg-zinc-700 px-8 py-2 font-medium text-white transition-all duration-300 hover:bg-blue-600"
         >
           Login
         </button>

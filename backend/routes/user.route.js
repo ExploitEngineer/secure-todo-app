@@ -31,4 +31,20 @@ router.get("/me", verifyUser, async (req, res) => {
   }
 });
 
+router.get("/users/:id", async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+  parseInt(id);
+
+  try {
+    const user = await User.findOne({ where: { id } });
+    if (!user) res.status(404).send({ message: "no user found!" });
+
+    res.json(user);
+  } catch (err) {
+    console.error("no users found");
+  }
+});
+
 export default router;

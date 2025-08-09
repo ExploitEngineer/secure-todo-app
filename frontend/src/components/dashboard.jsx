@@ -1,8 +1,9 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2 } from "lucide-react";
+import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 
 export default function Dashboard() {
   const [todo, setTodo] = useState([]);
@@ -113,58 +114,62 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-800 p-10 flex-1 flex flex-col items-center">
-      <Link to="/users">
-        <Button className="absolute right-5 top-5 text-white text-sm font-medium rounded-lg py-5 px-4 bg-amber-600 cursor-pointer hover:bg-amber-500 transition-all duration-200 shadow-md">
-          All users
-        </Button>
-      </Link>
-
-      <h1 className="text-white text-center font-bold text-3xl mt-16">
+    <div className="relative flex min-h-screen w-full flex-1 flex-col items-center bg-white p-10 text-zinc-900 dark:bg-zinc-900 dark:text-white">
+      <div className="absolute -top-8 right-0">
+        <ThemeToggleButton
+          variant="gif"
+          url="https://media.giphy.com/media/ArfrRmFCzYXsC6etQX/giphy.gif?cid=ecf05e47kn81xmnuc9vd5g6p5xyjt14zzd3dzwso6iwgpvy3&ep=v1_stickers_search&rid=giphy.gif&ct=s"
+        />
+      </div>
+      <h1 className="mt-16 text-center text-3xl font-bold">
         Welcome to Dashboard 👋
       </h1>
 
-      <div className="mt-8 w-full max-w-md flex gap-3">
+      {/* Input + Add Button */}
+      <div className="mt-8 flex w-full max-w-md gap-3">
         <input
           type="text"
           value={value}
           onChange={handleInputChange}
-          className="flex-1 py-3 px-4 rounded-lg outline-none text-white bg-zinc-700/80 border border-blue-600 placeholder:text-sm focus:ring-2 focus:ring-blue-500"
+          className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 placeholder:text-sm placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-400"
           placeholder="Enter task..."
         />
         <Button
           onClick={handleSetTodo}
-          className="bg-blue-600 hover:bg-blue-500 transition-colors duration-200 text-white text-sm font-medium rounded-lg py-6 px-5 shadow-md cursor-pointer"
+          className="cursor-pointer rounded-lg bg-blue-600 px-5 py-6 text-sm font-medium text-white shadow-md transition-colors duration-200 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-400"
         >
           Add Todo
         </Button>
       </div>
 
-      <div className="w-full max-w-md mt-10 bg-zinc-800/80 rounded-lg shadow-lg p-6">
-        <h2 className="text-zinc-300 font-bold text-xl mb-4">Todos</h2>
-        <div className="custom-scrollbar w-full flex flex-col gap-3 overflow-y-auto max-h-[300px] pr-1">
+      {/* Todos List */}
+      <div className="mt-10 w-full max-w-md rounded-lg bg-zinc-100 p-6 shadow-lg dark:bg-zinc-800/80">
+        <h2 className="mb-4 text-xl font-bold text-zinc-800 dark:text-zinc-300">
+          Todos
+        </h2>
+        <div className="custom-scrollbar flex max-h-[300px] w-full flex-col gap-3 overflow-y-auto pr-1">
           {todo.length === 0 ? (
-            <p className="text-zinc-500 font-medium text-sm text-center py-4">
+            <p className="py-4 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400">
               No todos yet...
             </p>
           ) : (
             todo.map((item, idx) => (
               <div
                 key={idx}
-                className="w-full px-4 py-3 bg-zinc-700/60 rounded-lg flex items-center justify-between hover:bg-zinc-700 transition-colors duration-200"
+                className="flex w-full items-center justify-between rounded-lg bg-white px-4 py-3 transition-colors duration-200 hover:bg-zinc-50 dark:bg-zinc-700/60 dark:hover:bg-zinc-700"
               >
                 <div className="flex items-center gap-3">
                   <input
                     checked={item.checked}
                     type="checkbox"
                     onChange={() => toggleCheck(idx)}
-                    className="cursor-pointer w-4 h-4 accent-blue-500"
+                    className="h-4 w-4 cursor-pointer accent-blue-500"
                   />
                   <span
                     className={`text-sm ${
                       item.checked
-                        ? "line-through text-zinc-500"
-                        : "text-zinc-300"
+                        ? "text-zinc-400 line-through"
+                        : "text-zinc-800 dark:text-zinc-300"
                     }`}
                   >
                     {item.title}
@@ -173,15 +178,18 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                   <Button
                     onClick={() => handleTodoUpdate(item.id)}
-                    className="hover:scale-110 cursor-pointer transition-transform duration-150"
+                    className="cursor-pointer bg-zinc-200 transition-transform duration-150 hover:scale-110 hover:bg-zinc-300 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   >
-                    <SquarePen size={18} color="white" />
+                    <SquarePen
+                      size={18}
+                      className="text-zinc-800 dark:text-white"
+                    />
                   </Button>
                   <Button
                     onClick={() => handleDelete(item.id)}
-                    className="hover:scale-110 cursor-pointer transition-transform duration-150"
+                    className="cursor-pointer bg-zinc-200 transition-transform duration-150 hover:scale-110 hover:bg-zinc-300 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   >
-                    <Trash2 size={18} color="red" />
+                    <Trash2 size={18} className="text-red-600" />
                   </Button>
                 </div>
               </div>
@@ -190,9 +198,10 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Logout Button */}
       <Button
         onClick={handleLogout}
-        className="fixed cursor-pointer right-8 bottom-8 text-white text-sm font-medium rounded-lg py-5 px-6 bg-red-600 hover:bg-red-500 transition-colors duration-200 shadow-lg"
+        className="fixed right-8 bottom-8 cursor-pointer rounded-lg bg-red-600 px-6 py-5 text-sm font-medium text-white shadow-lg transition-colors duration-200 hover:bg-red-500"
       >
         Logout
       </Button>

@@ -1,6 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2 } from "lucide-react";
 
 export default function Dashboard() {
@@ -71,7 +72,7 @@ export default function Dashboard() {
 
   const toggleCheck = (index) => {
     const updatedTodos = todo.map((item, idx) =>
-      index === idx ? { ...item, checked: !item.checked } : item
+      index === idx ? { ...item, checked: !item.checked } : item,
     );
     setTodo(updatedTodos);
   };
@@ -120,7 +121,7 @@ export default function Dashboard() {
 
       const updateTodo = await res.json();
       setTodo((prevTodos) =>
-        prevTodos.map((item) => (item.id === idx ? updateTodo : item))
+        prevTodos.map((item) => (item.id === idx ? updateTodo : item)),
       );
     } catch (err) {
       console.error("Error updating todo:", err.message);
@@ -141,9 +142,9 @@ export default function Dashboard() {
       </div>
 
       <Link to="/users">
-        <button className="absolute right-5 top-5 text-white text-sm font-medium rounded-lg py-3 px-4 bg-amber-600 cursor-pointer hover:bg-amber-500 transition-all duration-200 shadow-md">
+        <Button className="absolute right-5 top-5 text-white text-sm font-medium rounded-lg py-5 px-4 bg-amber-600 cursor-pointer hover:bg-amber-500 transition-all duration-200 shadow-md">
           All users
-        </button>
+        </Button>
       </Link>
 
       <h1 className="text-white text-center font-bold text-3xl mt-16">
@@ -158,12 +159,12 @@ export default function Dashboard() {
           className="flex-1 py-3 px-4 rounded-lg outline-none text-white bg-zinc-700/80 border border-blue-600 placeholder:text-sm focus:ring-2 focus:ring-blue-500"
           placeholder="Enter task..."
         />
-        <button
+        <Button
           onClick={handleSetTodo}
-          className="bg-blue-600 hover:bg-blue-500 transition-colors duration-200 text-white text-sm font-medium rounded-lg py-3 px-5 shadow-md cursor-pointer"
+          className="bg-blue-600 hover:bg-blue-500 transition-colors duration-200 text-white text-sm font-medium rounded-lg py-6 px-5 shadow-md cursor-pointer"
         >
           Add Todo
-        </button>
+        </Button>
       </div>
 
       <div className="w-full max-w-md mt-10 bg-zinc-800/80 rounded-lg shadow-lg p-6">
@@ -197,18 +198,18 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button
+                  <Button
                     onClick={() => handleTodoUpdate(item.id)}
                     className="hover:scale-110 cursor-pointer transition-transform duration-150"
                   >
                     <SquarePen size={18} color="white" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleDelete(item.id)}
                     className="hover:scale-110 cursor-pointer transition-transform duration-150"
                   >
                     <Trash2 size={18} color="red" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))
@@ -216,12 +217,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <button
+      <Button
         onClick={handleLogout}
-        className="fixed cursor-pointer right-8 bottom-8 text-white text-sm font-medium rounded-lg py-3 px-6 bg-red-600 hover:bg-red-500 transition-colors duration-200 shadow-lg"
+        className="fixed cursor-pointer right-8 bottom-8 text-white text-sm font-medium rounded-lg py-5 px-6 bg-red-600 hover:bg-red-500 transition-colors duration-200 shadow-lg"
       >
         Logout
-      </button>
+      </Button>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { RotateCw } from "lucide-react";
 import { io } from "socket.io-client";
+import { Button } from "@/components/ui/button";
 
 export function AllUsers() {
   const [users, setUsers] = useState([]);
@@ -41,6 +42,10 @@ export function AllUsers() {
     }, 1000);
   };
 
+  const handleCollab = (userId) => {
+    console.log(userId);
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-b from-zinc-900 to-zinc-800 py-8 px-6">
       <div className="w-full flex justify-between items-center max-w-6xl mb-10">
@@ -48,17 +53,17 @@ export function AllUsers() {
           Users List
         </h1>
         <Link to="/dashboard">
-          <button className="text-white text-sm font-medium rounded-lg py-3 px-5 bg-amber-600 hover:bg-amber-500 transition-all duration-200 shadow-md">
+          <Button className="text-white cursor-pointer text-sm font-medium rounded-lg py-5 px-5 bg-amber-600 hover:bg-amber-500 transition-all duration-200 shadow-md">
             Dashboard
-          </button>
+          </Button>
         </Link>
       </div>
 
       <div className="relative bg-zinc-800/80 backdrop-blur-md shadow-xl rounded-2xl w-full max-w-6xl min-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-800 p-6">
         <div className="w-full flex items-center justify-end">
-          <button onClick={handleClick} className="me-4 cursor-pointer">
+          <Button onClick={handleClick} className="me-4 cursor-pointer">
             <RotateCw ref={iconRef} color="white" strokeWidth={1.5} />
-          </button>
+          </Button>
         </div>
         <ul className="w-full flex flex-col gap-4 mt-4">
           {users.length === 0 ? (
@@ -81,12 +86,12 @@ export function AllUsers() {
                     {user.username}
                   </h3>
                 </div>
-                <button
-                  onClick={() => console.log(user.id)}
+                <Button
+                  onClick={handleCollab(user.id)}
                   className="py-2 px-6 bg-blue-600 hover:bg-blue-500 transition-colors duration-200 text-white font-medium text-sm rounded-lg cursor-pointer shadow-md"
                 >
                   Collab
-                </button>
+                </Button>
               </li>
             ))
           )}

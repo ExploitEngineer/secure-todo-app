@@ -5,8 +5,15 @@ import { AllUsers } from "./components/all-users";
 import ProtectedRoute from "./utils/protected-route";
 import Layout from "./components/sidebar";
 import { ThemeProvider } from "./components/theme-provider";
+import { io } from "socket.io-client";
 
 export default function App() {
+  const socket = io("http://localhost:4000");
+
+  socket.emit("connection", () => {
+    console.log("hey, I am new user");
+  });
+
   return (
     <>
       <ThemeProvider

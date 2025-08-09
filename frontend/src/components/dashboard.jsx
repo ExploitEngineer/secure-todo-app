@@ -7,23 +7,8 @@ import { SquarePen, Trash2 } from "lucide-react";
 export default function Dashboard() {
   const [todo, setTodo] = useState([]);
   const [value, setValue] = useState("");
-  const [username, setUsername] = useState("");
 
   const navigate = useNavigate();
-
-  const fetchUser = async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/me", {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch user");
-      const data = await res.json();
-      setUsername(data.username);
-    } catch (err) {
-      console.error(err.message);
-      setUsername("");
-    }
-  };
 
   const fetchTodos = async () => {
     try {
@@ -45,7 +30,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchUser();
     fetchTodos();
   }, []);
 
@@ -130,17 +114,6 @@ export default function Dashboard() {
 
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-800 p-10 flex flex-col items-center">
-      <div className="absolute left-5 top-5 flex items-center gap-3">
-        <img
-          src="/assets/images/user.jpg"
-          className="w-12 h-12 rounded-full border border-zinc-600 shadow-sm object-cover"
-          alt="user"
-        />
-        <h3 className="text-white text-base font-semibold tracking-wide">
-          {username || "Loading..."}
-        </h3>
-      </div>
-
       <Link to="/users">
         <Button className="absolute right-5 top-5 text-white text-sm font-medium rounded-lg py-5 px-4 bg-amber-600 cursor-pointer hover:bg-amber-500 transition-all duration-200 shadow-md">
           All users

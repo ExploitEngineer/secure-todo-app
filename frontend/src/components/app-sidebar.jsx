@@ -1,4 +1,5 @@
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import {
   Sidebar,
@@ -6,6 +7,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -41,8 +43,40 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const [username, setUsername] = useState("");
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/me", {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch user");
+      const data = await res.json();
+      setUsername(data.username);
+    } catch (err) {
+      console.error(err.message);
+      setUsername("");
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   return (
     <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-3">
+          <img
+            src="/assets/images/user.jpg"
+            className="w-12 h-12 rounded-full border border-zinc-600 shadow-sm object-cover"
+            alt="user"
+          />
+          <h3 className="text-white text-base font-semibold tracking-wide">
+            {username || "Loading..."}
+          </h3>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>

@@ -1,6 +1,8 @@
 import express from "express";
-import { Todo } from "../models";
-import verifyUser from "../middleware/verifyUser";
+import db from "../models/index.js";
+import verifyUser from "../middleware/verifyUser.js";
+
+const { Todo } = db;
 
 const router = express.Router();
 
@@ -99,4 +101,4 @@ router.patch("/:id", verifyUser, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

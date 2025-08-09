@@ -1,6 +1,10 @@
-import { User } from "../models";
+import db from "../models/index.js";
 import jwt from "jsonwebtoken";
-require("dotenv").config();
+import dotenv from "dotenv";
+
+const { User } = db;
+
+dotenv.config();
 
 const verifyUser = async (req, res, next) => {
   try {
@@ -29,4 +33,4 @@ const verifyUser = async (req, res, next) => {
   }
 };
 
-module.exports = verifyUser;
+export default verifyUser;

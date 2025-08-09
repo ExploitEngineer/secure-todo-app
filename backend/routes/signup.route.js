@@ -1,8 +1,11 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import { User } from "../models";
+import db from "../models/index.js";
+import dotenv from "dotenv";
 
-require("dotenv").config();
+const { User } = db;
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -25,4 +28,4 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

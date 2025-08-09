@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { SquarePen, Trash2 } from "lucide-react";
@@ -6,6 +6,23 @@ import { SquarePen, Trash2 } from "lucide-react";
 export default function Dashboard() {
   const [todo, setTodo] = useState([]);
   const [value, setValue] = useState("");
+  const [username, setUsername] = useState("");
+
+  const navigate = useNavigate();
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/me", {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch user");
+      const data = await res.json();
+      setUsername(data.username);
+    } catch (err) {
+      console.error(err.message);
+      setUsername("");
+    }
+  };
 
   const fetchTodos = async () => {
     try {
@@ -27,6 +44,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    fetchUser();
     fetchTodos();
   }, []);
 
@@ -53,7 +71,7 @@ export default function Dashboard() {
 
   const toggleCheck = (index) => {
     const updatedTodos = todo.map((item, idx) =>
-      index === idx ? { ...item, checked: !item.checked } : item,
+      index === idx ? { ...item, checked: !item.checked } : item
     );
     setTodo(updatedTodos);
   };
@@ -102,7 +120,7 @@ export default function Dashboard() {
 
       const updateTodo = await res.json();
       setTodo((prevTodos) =>
-        prevTodos.map((item) => (item.id === idx ? updateTodo : item)),
+        prevTodos.map((item) => (item.id === idx ? updateTodo : item))
       );
     } catch (err) {
       console.error("Error updating todo:", err.message);
@@ -117,7 +135,9 @@ export default function Dashboard() {
           className="w-12 h-12 rounded-full border border-zinc-600 shadow-sm object-cover"
           alt="user"
         />
-        <h3 className="text-white text-base font-semibold tracking-wide"></h3>
+        <h3 className="text-white text-base font-semibold tracking-wide">
+          {username || "Loading..."}
+        </h3>
       </div>
 
       <Link to="/users">

@@ -1,5 +1,8 @@
 import express from "express";
-import { User } from "../models";
+import db from "../models/index.js";
+import verifyUser from "../middleware/verifyUser.js";
+
+const { User } = db;
 
 const router = express.Router();
 
@@ -15,4 +18,17 @@ router.get("/users", async (_req, res) => {
   }
 });
 
-module.exports = router;
+router.get("/me", verifyUser, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ["username", "email"],
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export default router;

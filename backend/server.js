@@ -1,20 +1,22 @@
 import cors from "cors";
 import express from "express";
-import { sequelize } from "./models";
+import db from "./models/index.js";
 import cookieParser from "cookie-parser";
 import { Umzug, SequelizeStorage } from "umzug";
 import http from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
 
+const { sequelize } = db;
+
 dotenv.config();
 
-import signupRoute from "./routes/signup.route";
-import logoutRoute from "./routes/logout.route";
-import indexRoute from "./routes/index.route";
-import loginRoute from "./routes/login.route";
-import todoRoute from "./routes/todo.route";
-import userRoute from "./routes/user.route";
+import signupRoute from "./routes/signup.route.js";
+import logoutRoute from "./routes/logout.route.js";
+import indexRoute from "./routes/index.route.js";
+import loginRoute from "./routes/login.route.js";
+import todoRoute from "./routes/todo.route.js";
+import userRoute from "./routes/user.route.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -23,14 +25,14 @@ app.use(
   cors({
     origin: "http://localhost:5173", // Frontend origin
     credentials: true, // Allow cookies to be sent
-  }),
+  })
 );
 
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-    crendentials: true,
+    credentials: true,
   },
 });
 
@@ -72,7 +74,7 @@ const PORT = process.env.PORT || 3001;
     console.log("Migrations applied");
 
     server.listen(PORT, () =>
-      console.log(`Server is running on http://127.0.0.1:${PORT}`),
+      console.log(`Server is running on http://127.0.0.1:${PORT}`)
     );
   } catch (err) {
     console.error("Error starting server:", err);

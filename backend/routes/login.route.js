@@ -1,9 +1,12 @@
-import express from "expres";
+import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { User } from "../models";
+import db from "../models/index.js";
+import dotenv from "dotenv";
 
-require("dotenv").config();
+const { User } = db;
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -34,4 +37,4 @@ router.post("/login", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

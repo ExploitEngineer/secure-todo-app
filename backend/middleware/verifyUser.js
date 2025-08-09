@@ -1,5 +1,5 @@
-const { User } = require("../models");
-const jwt = require("jsonwebtoken");
+import { User } from "../models";
+import jwt from "jsonwebtoken";
 require("dotenv").config();
 
 const verifyUser = async (req, res, next) => {

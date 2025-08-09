@@ -4,8 +4,10 @@ import { sequelize } from "./models";
 import cookieParser from "cookie-parser";
 import { Umzug, SequelizeStorage } from "umzug";
 import http from "http";
+import { Server } from "socket.io";
+import dotenv from "dotenv";
 
-require("dotenv").config();
+dotenv.config();
 
 import signupRoute from "./routes/signup.route";
 import logoutRoute from "./routes/logout.route";
@@ -23,6 +25,15 @@ app.use(
     credentials: true, // Allow cookies to be sent
   }),
 );
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    crendentials: true,
+  },
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -34,6 +45,10 @@ app.use(signupRoute);
 app.use("/api", userRoute);
 app.use("/todos", todoRoute);
 app.use("/logout", logoutRoute);
+
+io.on("connection", (socket) => {
+  console.log("New client connected, id =", socket.id);
+});
 
 const runMigrations = async () => {
   const umzug = new Umzug({

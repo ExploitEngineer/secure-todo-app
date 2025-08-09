@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { RotateCw } from "lucide-react";
+import { io } from "socket.io-client";
 
 export function AllUsers() {
   const [users, setUsers] = useState([]);
@@ -20,6 +21,17 @@ export function AllUsers() {
 
   useEffect(() => {
     fetchUsers();
+
+    const socket = io("http://localhost:4000", {
+      auth: {
+        token: "REPLACE_WITH_REAL_TOKEN",
+      },
+      transports: ["websocket"],
+    });
+
+    socket.on("connect", () => {
+      console.log("connected, id =", socket.id);
+    });
   }, []);
 
   const handleClick = () => {

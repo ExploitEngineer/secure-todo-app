@@ -5,12 +5,12 @@ import { DashboardPage } from "@/pages/dashboard-page";
 export default function Layout() {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
+      <div className="w-full flex min-h-screen">
         {/* Left Sidebar */}
         <AppSidebar />
 
         {/* Right Content Area */}
-        <main className="flex-1 p-4">
+        <main className="w-full flex-1 p-4">
           <SidebarTrigger />
           <DashboardPage />
         </main>

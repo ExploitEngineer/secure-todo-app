@@ -113,7 +113,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-800 p-10 flex flex-col items-center">
+    <div className="relative w-full min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-800 p-10 flex-1 flex flex-col items-center">
       <Link to="/users">
         <Button className="absolute right-5 top-5 text-white text-sm font-medium rounded-lg py-5 px-4 bg-amber-600 cursor-pointer hover:bg-amber-500 transition-all duration-200 shadow-md">
           All users

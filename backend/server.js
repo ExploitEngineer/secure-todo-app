@@ -25,7 +25,7 @@ app.use(
   cors({
     origin: "http://localhost:5173", // Frontend origin
     credentials: true, // Allow cookies to be sent
-  })
+  }),
 );
 
 const io = new Server(server, {
@@ -74,7 +74,7 @@ const PORT = process.env.PORT || 3001;
     console.log("Migrations applied");
 
     server.listen(PORT, () =>
-      console.log(`Server is running on http://127.0.0.1:${PORT}`)
+      console.log(`Server is running on http://127.0.0.1:${PORT}`),
     );
   } catch (err) {
     console.error("Error starting server:", err);

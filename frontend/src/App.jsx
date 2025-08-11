@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { LoginPage } from "./pages/login-page";
 import { SignUpPage } from "./pages/signup-page";
-import { AllUsers } from "./components/all-users";
 import ProtectedRoute from "./utils/protected-route";
 import Layout from "./components/sidebar";
 import { ThemeProvider } from "./components/theme-provider";
@@ -10,9 +9,7 @@ import { io } from "socket.io-client";
 export default function App() {
   const socket = io("http://localhost:4000");
 
-  socket.emit("connection", () => {
-    console.log("hey, I am new user");
-  });
+  socket.emit("connection", { text: "Hello server!" });
 
   return (
     <>
@@ -25,7 +22,6 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/users" element={<AllUsers />} />
           <Route
             path="/dashboard"
             element={

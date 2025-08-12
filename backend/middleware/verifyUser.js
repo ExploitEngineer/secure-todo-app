@@ -12,7 +12,6 @@ const verifyUser = async (req, res, next) => {
 
     const token = req.cookies.token;
     if (!token) {
-      console.log("Token is missing in cookies");
       return res.status(401).json({ error: "No token" });
     }
 
@@ -21,14 +20,12 @@ const verifyUser = async (req, res, next) => {
 
     const user = await User.findByPk(decoded.id);
     if (!user) {
-      console.log("User not found");
       return res.status(404).send({ error: "User not found" });
     }
 
     req.user = user;
     next();
   } catch (err) {
-    console.log("JWT verification error:", err);
     res.status(401).send({ error: "Unauthorized" });
   }
 };

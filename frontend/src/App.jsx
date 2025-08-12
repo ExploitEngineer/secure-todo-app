@@ -4,13 +4,8 @@ import { SignUpPage } from "./pages/signup-page";
 import ProtectedRoute from "./utils/protected-route";
 import Layout from "./components/sidebar";
 import { ThemeProvider } from "./components/theme-provider";
-import { io } from "socket.io-client";
 
 export default function App() {
-  const socket = io("http://localhost:4000");
-
-  socket.emit("connection", { text: "Hello server!" });
-
   return (
     <>
       <ThemeProvider

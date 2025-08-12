@@ -1,37 +1,71 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2 } from "lucide-react";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
+import { io } from "socket.io-client";
 
-export default function Dashboard() {
-  const [todo, setTodo] = useState([]);
+export const socket = io("http://localhost:4000", {
+  withCredentials: true,
+});
+
+export default function Dashboard({ todos, setTodos }) {
   const [value, setValue] = useState("");
-
   const navigate = useNavigate();
-
-  const fetchTodos = async () => {
-    try {
-      const response = await fetch("http://localhost:4000/todos", {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        toast.error("Failed to fetch todos!");
-        throw new Error(`Error fetching todos: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      toast.success("Todos fetched");
-      setTodo(data);
-    } catch (err) {
-      console.log(err.message);
-    }
-  };
+  const socketRef = useRef(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    fetchTodos();
+    async function fetchUser() {
+      try {
+        const res = await fetch("http://localhost:4000/api/me", {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch user");
+        const data = await res.json();
+        setUserId(data.id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    socketRef.current = io("http://localhost:4000", {
+      withCredentials: true,
+    });
+
+    socketRef.current.on("todoAdded", (newTodo) => {
+      setTodos((prev) => [newTodo, ...prev]);
+    });
+
+    socketRef.current.on("todoUpdated", (updatedTodo) => {
+      setTodos((prev) =>
+        prev.map((t) => (t.id === updatedTodo.id ? updatedTodo : t)),
+      );
+    });
+
+    socketRef.current.on("todoDeleted", (id) => {
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+    });
+
+    // Listen for socket errors (optional)
+    socketRef.current.on("connect_error", (err) => {
+      console.error("Socket connect error:", err.message);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off("todoAdded");
+        socketRef.current.off("todoUpdated");
+        socketRef.current.off("todoDeleted");
+        socketRef.current.off("connect_error");
+        socketRef.current.disconnect();
+      }
+    };
   }, []);
 
   const handleInputChange = (e) => setValue(e.target.value);
@@ -42,24 +76,22 @@ export default function Dashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title: value }),
+        body: JSON.stringify({ title: value, userId }),
       });
-
-      if (!res.ok) throw new Error(`Error adding todo: ${res.statusText}`);
-
+      if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
       const newTodo = await res.json();
-      setTodo([newTodo, ...todo]);
+      setTodos((prev) => [newTodo, ...prev]);
       setValue("");
     } catch (err) {
       console.log(err.message);
     }
   };
 
-  const toggleCheck = (index) => {
-    const updatedTodos = todo.map((item, idx) =>
-      index === idx ? { ...item, checked: !item.checked } : item,
+  const toggleCheck = (id) => {
+    const updatedTodos = todos.map((item) =>
+      item.id === id ? { ...item, checked: !item.checked } : item,
     );
-    setTodo(updatedTodos);
+    setTodos(updatedTodos);
   };
 
   const handleLogout = async () => {
@@ -76,37 +108,34 @@ export default function Dashboard() {
     }
   };
 
-  const handleDelete = async (idx) => {
+  const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:4000/todos/${idx}`, {
+      const res = await fetch(`http://localhost:4000/todos/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
       if (!res.ok) throw new Error(`Error deleting todo: ${res.statusText}`);
-
-      setTodo(todo.filter((item) => item.id !== idx));
+      setTodos(todos.filter((item) => item.id !== id));
     } catch (err) {
       console.error("Error deleting todo:", err.message);
     }
   };
 
-  const handleTodoUpdate = async (idx) => {
+  const handleTodoUpdate = async (id) => {
     const newTitle = prompt("Enter new title");
     if (!newTitle) return;
-
     try {
-      const res = await fetch(`http://localhost:4000/todos/${idx}`, {
+      const res = await fetch(`http://localhost:4000/todos/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ title: newTitle }),
       });
-
       if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
-
       const updateTodo = await res.json();
-      setTodo((prevTodos) =>
-        prevTodos.map((item) => (item.id === idx ? updateTodo : item)),
+      console.log("UPDATE TODO:", updateTodo);
+      setTodos((prevTodos) =>
+        prevTodos.map((item) => (item.id === id ? updateTodo : item)),
       );
     } catch (err) {
       console.error("Error updating todo:", err.message);
@@ -148,21 +177,21 @@ export default function Dashboard() {
           Todos
         </h2>
         <div className="custom-scrollbar flex max-h-[300px] w-full flex-col gap-3 overflow-y-auto pr-1">
-          {todo.length === 0 ? (
+          {todos.length === 0 ? (
             <p className="py-4 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400">
               No todos yet...
             </p>
           ) : (
-            todo.map((item, idx) => (
+            todos.map((item) => (
               <div
-                key={idx}
+                key={item.id}
                 className="flex w-full items-center justify-between rounded-lg bg-white px-4 py-3 transition-colors duration-200 hover:bg-zinc-50 dark:bg-zinc-700/60 dark:hover:bg-zinc-700"
               >
                 <div className="flex items-center gap-3">
                   <input
                     checked={item.checked}
                     type="checkbox"
-                    onChange={() => toggleCheck(idx)}
+                    onChange={() => toggleCheck(item.id)}
                     className="h-4 w-4 cursor-pointer accent-blue-500"
                   />
                   <span

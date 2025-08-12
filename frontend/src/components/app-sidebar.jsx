@@ -37,13 +37,13 @@ const items = [
 // Example workflows for dropdown
 const workflows = ["Personal", "Work", "Project A", "Project B", "Archived"];
 
-export function AppSidebar() {
+export function AppSidebar({ selectedUser, onUserSelect }) {
   const { theme } = useTheme();
 
   const [users, setUsers] = useState([]);
   const [username, setUsername] = useState("");
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflows[0]);
-  const [selectedUser, setSelectedUser] = useState("select user");
+  const [loggedInUser, setLoggedInUser] = useState({ username: "", email: "" });
 
   const fetchUsername = async () => {
     try {
@@ -52,10 +52,12 @@ export function AppSidebar() {
       });
       if (!res.ok) throw new Error("Failed to fetch username");
       const data = await res.json();
+      setLoggedInUser({ username: data.username, email: data.email });
       setUsername(data.username);
     } catch (err) {
       console.error(err.message);
       setUsername("");
+      setLoggedInUser({ username: "", email: "" });
     }
   };
 
@@ -72,21 +74,6 @@ export function AppSidebar() {
     } catch (err) {
       console.error("failed to fetch", err.message);
     }
-  };
-
-  const handleUserClick = async (userId) => {
-    try {
-      const res = await fetch(`http://localhost:4000/api/users/${userId}`);
-      if (!res.ok) {
-        toast.error("failed to fetch new user");
-        throw new Error("Error fetching user");
-      }
-      const data = await res.json();
-      console.log(data);
-    } catch (err) {
-      console.error("failed to fetch user data", err.message3);
-    }
-    console.log(userId);
   };
 
   useEffect(() => {
@@ -150,25 +137,22 @@ export function AppSidebar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-full cursor-pointer rounded-md border border-zinc-700 bg-zinc-900 px-4 py-2 text-left text-sm font-medium text-white hover:bg-zinc-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                {selectedUser}
+                {selectedUser?.username || "select user"}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuSeparator />
-              {users.map((user, idx) => (
+              {users.map((user) => (
                 <DropdownMenuItem
-                  key={idx}
-                  onSelect={() => {
-                    setSelectedUser(user.username);
-                    handleUserClick(user.id);
-                  }}
+                  key={user.id}
+                  onSelect={() => onUserSelect && onUserSelect(user)}
                   className={
-                    user.username === selectedUser
+                    user.id === selectedUser?.id
                       ? "font-semibold text-blue-500"
                       : ""
                   }
                 >
-                  {user.username === username ? (
+                  {user.email === loggedInUser.email ? (
                     <Badge className="bg-green-600">{user.username}</Badge>
                   ) : (
                     user.username

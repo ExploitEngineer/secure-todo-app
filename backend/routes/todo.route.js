@@ -2,7 +2,7 @@ import express from "express";
 import db from "../models/index.js";
 import verifyUser from "../middleware/verifyUser.js";
 
-const { Todo } = db;
+const { User, Todo } = db;
 
 export default function (io) {
   const router = express.Router();
@@ -25,13 +25,14 @@ export default function (io) {
     }
   });
 
-  router.post("/", verifyUser, async (req, res) => {
-    const { title } = req.body;
-    const userId = req.user.id;
+  router.post("/", async (req, res) => {
+    const { title, userId } = req.body;
 
-    if (!title) {
-      return res.status(400).send({ error: "Title is required" });
-    }
+    if (!title) return res.status(400).send({ error: "Title is required" });
+    if (!userId) return res.status(400).send({ error: "UserId is required" });
+
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(400).send({ error: "User not found" });
 
     try {
       const newTodo = await Todo.create({
@@ -54,15 +55,14 @@ export default function (io) {
 
   router.delete("/:id", verifyUser, async (req, res) => {
     const id = Number(req.params.id);
-    const userId = req.user.id;
 
     try {
-      const todo = await Todo.findOne({ where: { id, userId } });
+      const todo = await Todo.findOne({ where: { id } });
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
       await todo.destroy();
 
-      io.to(`user_${userId}`).emit("todosUpdated", {
+      io.to(`user_${todo.userId}`).emit("todosUpdated", {
         action: "delete",
         todoId: id,
       });
@@ -79,23 +79,27 @@ export default function (io) {
   router.patch("/:id", verifyUser, async (req, res) => {
     const id = Number(req.params.id);
     const { title, checked } = req.body;
-    const userId = req.user.id;
 
     try {
       const todo = await Todo.findOne({
-        where: { id, userId },
+        where: { id },
       });
 
       if (!todo) {
         return res.status(404).send({ error: "Todo not found" });
       }
 
+      console.log("Editing todo owned by user:", todo.userId);
+
       if (typeof title === "string") todo.title = title;
       if (typeof checked === "boolean") todo.checked = checked;
 
       await todo.save();
 
-      io.to(`user_${userId}`).emit("todosUpdated", { action: "update", todo });
+      io.to(`user_${todo.userId}`).emit("todosUpdated", {
+        action: "update",
+        todo,
+      });
 
       res.status(200).send(todo);
     } catch (err) {

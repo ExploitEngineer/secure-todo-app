@@ -64,7 +64,7 @@ app.use(cookieParser());
 app.use(loginRoute);
 app.use(indexRoute);
 app.use(signupRoute);
-app.use("/api", userRoute(io));
+app.use("/api", userRoute);
 app.use("/todos", todoRoute(io));
 app.use("/logout", logoutRoute);
 

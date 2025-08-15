@@ -1,22 +1,21 @@
 import cors from "cors";
+import http from "http";
+import dotenv from "dotenv";
 import express from "express";
 import db from "./models/index.js";
-import cookieParser from "cookie-parser";
-import { Umzug, SequelizeStorage } from "umzug";
-import http from "http";
 import { Server } from "socket.io";
-import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import userRoute from "./routes/user.route.js";
+import todoRoute from "./routes/todo.route.js";
+import { Umzug, SequelizeStorage } from "umzug";
+import loginRoute from "./routes/login.route.js";
+import indexRoute from "./routes/index.route.js";
+import signupRoute from "./routes/signup.route.js";
+import logoutRoute from "./routes/logout.route.js";
 
 dotenv.config();
 
 const { sequelize } = db;
-
-import signupRoute from "./routes/signup.route.js";
-import logoutRoute from "./routes/logout.route.js";
-import indexRoute from "./routes/index.route.js";
-import loginRoute from "./routes/login.route.js";
-import todoRoute from "./routes/todo.route.js";
-import userRoute from "./routes/user.route.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -51,7 +50,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// helper to broadcast only to users' room
 export function broadcastTodoUpdate(userId, payload) {
   io.to(`user_${userId}`).emit("todosUpdated", payload);
 }
@@ -60,12 +58,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// register route (pass io to routes that need it)
+// register router & pass io to the routes which need the io
 app.use(loginRoute);
 app.use(indexRoute);
 app.use(signupRoute);
-app.use("/api", userRoute);
-app.use("/todos", todoRoute(io));
+app.use("/todos", todoRoute);
+app.use("/api", userRoute(io));
 app.use("/logout", logoutRoute);
 
 const runMigrations = async () => {

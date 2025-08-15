@@ -26,26 +26,22 @@ export default function (io) {
   });
 
   router.post("/", verifyUser, async (req, res) => {
-    const { title, userId } = req.body;
-    if (!title || !userId)
-      return res.status(400).send({ error: "Missing title or userId" });
+    const { title } = req.body;
+    if (!title) return res.status(400).send({ error: "Missing title" });
 
     try {
-      const user = await User.findByPk(userId);
-      if (!user) return res.status(400).send({ error: "User not found" });
-
       const newTodo = await Todo.create({
         title,
         checked: false,
-        userId,
+        userId: req.user.id,
       });
 
       const todos = await Todo.findAll({
-        where: { userId },
+        where: { userId: req.user.id },
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${userId}`).emit("todosUpdated", todos);
+      io.to(`user_${req.user.id}`).emit("todosUpdated", todos);
       res.status(201).send(newTodo);
     } catch (err) {
       console.error("Error creating todo:", err);
@@ -60,15 +56,18 @@ export default function (io) {
       const todo = await Todo.findByPk(id);
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
-      const targetUserId = todo.userId; // Remember whose todos list to refresh
+      if (todo.userId !== req.user.id) {
+        return res.status(403).send({ error: "Not authorized" });
+      }
+
       await todo.destroy();
 
       const todos = await Todo.findAll({
-        where: { userId: targetUserId },
+        where: { userId: req.user.id },
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${targetUserId}`).emit("todosUpdated", todos);
+      io.to(`user_${req.user.id}`).emit("todosUpdated", todos);
       res.status(200).send({ message: "Todo deleted successfully" });
     } catch (err) {
       console.error("Error deleting todo:", err);
@@ -84,17 +83,21 @@ export default function (io) {
       const todo = await Todo.findByPk(id);
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
+      if (todo.userId !== req.user.id) {
+        return res.status(403).send({ error: "Not authorized" });
+      }
+
       if (typeof title === "string") todo.title = title;
       if (typeof checked === "boolean") todo.checked = checked;
 
       await todo.save();
 
       const todos = await Todo.findAll({
-        where: { userId: todo.userId },
+        where: { userId: req.user.id },
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${todo.userId}`).emit("todosUpdated", todos);
+      io.to(`user_${req.user.id}`).emit("todosUpdated", todos);
       res.status(200).send(todo);
     } catch (err) {
       console.error("Error updating todo:", err);

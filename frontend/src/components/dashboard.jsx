@@ -1,18 +1,12 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+﻿import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2 } from "lucide-react";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
-import { io } from "socket.io-client";
-
-export const socket = io("http://localhost:4000", {
-  withCredentials: true,
-});
 
 export default function Dashboard({ todos, setTodos }) {
   const [value, setValue] = useState("");
   const navigate = useNavigate();
-  const socketRef = useRef(null);
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
@@ -30,42 +24,6 @@ export default function Dashboard({ todos, setTodos }) {
     }
 
     fetchUser();
-  }, []);
-
-  useEffect(() => {
-    socketRef.current = io("http://localhost:4000", {
-      withCredentials: true,
-    });
-
-    socketRef.current.on("todoAdded", (newTodo) => {
-      setTodos((prev) => [newTodo, ...prev]);
-    });
-
-    socketRef.current.on("todoUpdated", (updatedTodo) => {
-      setTodos((prev) =>
-        prev.map((t) => (t.id === updatedTodo.id ? updatedTodo : t)),
-      );
-    });
-
-    socketRef.current.on("todoDeleted", (id) => {
-      setTodos((prev) => prev.filter((t) => t.id !== id));
-    });
-
-    // Listen for socket errors (optional)
-    socketRef.current.on("connect_error", (err) => {
-      console.error("Socket connect error:", err.message);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.off("todoAdded");
-        socketRef.current.off("todoUpdated");
-        socketRef.current.off("todoDeleted");
-        socketRef.current.off("connect_error");
-        socketRef.current.disconnect();
-      }
-    };
   }, []);
 
   const handleInputChange = (e) => setValue(e.target.value);

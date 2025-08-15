@@ -26,14 +26,16 @@ export default function SignUp() {
           credentials: "include",
         });
 
-        const data = await response.json();
-        console.log("Signup Response:", data);
-
         if (!response.ok) {
           toast.error("something went wrong");
           throw new Error("Error creating user");
         }
+
+        const data = await response.json();
+        console.log("Signup Response:", data);
+
         toast.success("Successfully Signed up!");
+
         navigate("/login");
       } catch (err) {
         console.error(err.message);

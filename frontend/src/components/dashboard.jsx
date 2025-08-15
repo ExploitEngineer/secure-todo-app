@@ -1,18 +1,39 @@
 ﻿import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2 } from "lucide-react";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
+import { io } from "socket.io-client";
+import toast from "react-hot-toast";
 
 export default function Dashboard({ todos, setTodos }) {
+  const socketRef = useRef(null);
+
   const [value, setValue] = useState("");
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    socketRef.current = io("http://localhost:4000");
+
+    socketRef.current.on("connection_error", (err) => {
+      toast.error(`Socket connection failed: ${err.message}`);
+    });
+
+    socketRef.current.on("todosUpdated", (updatedTodos) => {
+      setTodos(updatedTodos);
+      toast.success("Todos udpate in real time.");
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, [setTodos]);
+
+  useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("http://localhost:4000/api/me", {
+        const res = await fetch("http://localhost:4000/api/users/me", {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch user");
@@ -30,11 +51,11 @@ export default function Dashboard({ todos, setTodos }) {
 
   const handleSetTodo = async () => {
     try {
-      const res = await fetch("http://localhost:4000/todos", {
+      const res = await fetch(`http://localhost:4000/api/todos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title: value, userId }),
+        body: JSON.stringify({ title: value }),
       });
       if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
       const newTodo = await res.json();
@@ -68,7 +89,7 @@ export default function Dashboard({ todos, setTodos }) {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:4000/todos/${id}`, {
+      const res = await fetch(`http://localhost:4000/api/todos/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -83,7 +104,7 @@ export default function Dashboard({ todos, setTodos }) {
     const newTitle = prompt("Enter new title");
     if (!newTitle) return;
     try {
-      const res = await fetch(`http://localhost:4000/todos/${id}`, {
+      const res = await fetch(`http://localhost:4000/api/todos/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -91,7 +112,6 @@ export default function Dashboard({ todos, setTodos }) {
       });
       if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
       const updateTodo = await res.json();
-      console.log("UPDATE TODO:", updateTodo);
       setTodos((prevTodos) =>
         prevTodos.map((item) => (item.id === id ? updateTodo : item)),
       );

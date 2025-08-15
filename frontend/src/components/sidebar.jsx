@@ -38,23 +38,22 @@ export default function Layout() {
     };
   }, [selectedUser]);
 
-  useEffect(() => {
-    const loadMyTodos = async () => {
-      try {
-        const res = await fetch("http://localhost:4000/todos", {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          setTodos([]);
-          return;
-        }
-        const data = await res.json();
-        setTodos(data);
-      } catch (err) {
-        console.error("Failed to load my todos:", err);
-        setTodos([]);
+  const loadMyTodos = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/todos", {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error("Response error:", res.statusText);
       }
-    };
+      const data = await res.json();
+      setTodos(data);
+    } catch (err) {
+      console.error("Failed to load my todos:", err);
+      setTodos([]);
+    }
+  };
+  useEffect(() => {
     loadMyTodos();
   }, []);
 

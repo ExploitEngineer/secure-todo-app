@@ -1,10 +1,9 @@
-import { Calendar, Home, Inbox, Search, Settings, User } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useTheme } from "@/components/theme-provider";
-import { Separator } from "@/components/ui/separator";
 import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-
+import { Separator } from "@/components/ui/separator";
+import { useTheme } from "@/components/theme-provider";
+import { Calendar, Home, Inbox, Search, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,29 +33,25 @@ const items = [
   { title: "Settings", url: "#", icon: Settings },
 ];
 
-// Example workflows for dropdown
 const workflows = ["Personal", "Work", "Project A", "Project B", "Archived"];
 
 export function AppSidebar({ selectedUser, onUserSelect }) {
   const { theme } = useTheme();
 
   const [users, setUsers] = useState([]);
-  const [username, setUsername] = useState("");
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflows[0]);
   const [loggedInUser, setLoggedInUser] = useState({ username: "", email: "" });
 
   const fetchUsername = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/me", {
+      const res = await fetch("http://localhost:4000/api/users/me", {
         credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to fetch username");
       const data = await res.json();
       setLoggedInUser({ username: data.username, email: data.email });
-      setUsername(data.username);
     } catch (err) {
       console.error(err.message);
-      setUsername("");
       setLoggedInUser({ username: "", email: "" });
     }
   };
@@ -92,9 +87,9 @@ export function AppSidebar({ selectedUser, onUserSelect }) {
           />
           <h3
             className="max-w-[160px] truncate text-lg font-semibold tracking-wide"
-            title={username}
+            title={loggedInUser.username}
           >
-            {username || "Loading..."}
+            {loggedInUser.username || "Loading..."}
           </h3>
         </div>
       </SidebarHeader>

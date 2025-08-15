@@ -1,8 +1,8 @@
-import express from "express";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+import express from "express";
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
-import dotenv from "dotenv";
 
 const { User } = db;
 
@@ -22,6 +22,9 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    user.isAdmin = true;
+    await user.save();
+
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
 
     res.cookie("token", token, {
@@ -30,7 +33,9 @@ router.post("/login", async (req, res) => {
       sameSite: "strict", // Prevent CSRF attacks
     });
 
-    res.status(200).json({ message: "Login successful" });
+    res
+      .status(200)
+      .json({ message: "Login successful, admin status granted", user });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Internal server error" });

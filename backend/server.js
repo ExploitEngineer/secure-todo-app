@@ -62,8 +62,8 @@ app.use(cookieParser());
 app.use(loginRoute);
 app.use(indexRoute);
 app.use(signupRoute);
-app.use("/todos", todoRoute);
-app.use("/api", userRoute(io));
+app.use("/api/todos", todoRoute(io));
+app.use("/api/users", userRoute(io));
 app.use("/logout", logoutRoute);
 
 const runMigrations = async () => {

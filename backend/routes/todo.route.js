@@ -2,7 +2,7 @@ import express from "express";
 import db from "../models/index.js";
 import verifyUser from "../middleware/verifyUser.js";
 
-const { User, Todo } = db;
+const { Todo } = db;
 
 export default function (io) {
   const router = express.Router();
@@ -26,8 +26,11 @@ export default function (io) {
   });
 
   router.post("/", verifyUser, async (req, res) => {
-    const { title } = req.body;
-    if (!title) return res.status(400).send({ error: "Missing title" });
+    const {
+      body: { title },
+    } = req;
+    if (!title)
+      return res.status(400).send({ error: "Missing title or userId" });
 
     try {
       const newTodo = await Todo.create({
@@ -56,10 +59,6 @@ export default function (io) {
       const todo = await Todo.findByPk(id);
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
-      if (todo.userId !== req.user.id) {
-        return res.status(403).send({ error: "Not authorized" });
-      }
-
       await todo.destroy();
 
       const todos = await Todo.findAll({
@@ -83,10 +82,6 @@ export default function (io) {
       const todo = await Todo.findByPk(id);
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
-      if (todo.userId !== req.user.id) {
-        return res.status(403).send({ error: "Not authorized" });
-      }
-
       if (typeof title === "string") todo.title = title;
       if (typeof checked === "boolean") todo.checked = checked;
 
@@ -104,6 +99,5 @@ export default function (io) {
       res.status(500).send({ error: "Failed to update todo" });
     }
   });
-
   return router;
 }

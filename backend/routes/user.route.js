@@ -37,7 +37,7 @@ router.get("/users/:id", async (req, res) => {
 
   try {
     const user = await User.findByPk(id);
-    if (!user) res.status(404).send({ message: "no user found!" });
+    if (!user) return res.status(404).send({ message: "no user found!" });
 
     res.json(user);
   } catch (err) {

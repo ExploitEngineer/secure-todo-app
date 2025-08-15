@@ -28,8 +28,8 @@ export default function (io) {
   router.post("/", async (req, res) => {
     const { title, userId } = req.body;
 
-    if (!title) return res.status(400).send({ error: "Title is required" });
-    if (!userId) return res.status(400).send({ error: "UserId is required" });
+    if (!title || !userId)
+      return res.status(400).send({ error: "Title & userId is required" });
 
     const user = await User.findByPk(userId);
     if (!user) return res.status(400).send({ error: "User not found" });

@@ -25,27 +25,27 @@ export default function (io) {
     }
   });
 
-  router.post("/", async (req, res) => {
+  router.post("/", verifyUser, async (req, res) => {
     const { title, userId } = req.body;
-
     if (!title || !userId)
-      return res.status(400).send({ error: "Title & userId is required" });
-
-    const user = await User.findByPk(userId);
-    if (!user) return res.status(400).send({ error: "User not found" });
+      return res.status(400).send({ error: "Missing title or userId" });
 
     try {
+      const user = await User.findByPk(userId);
+      if (!user) return res.status(400).send({ error: "User not found" });
+
       const newTodo = await Todo.create({
         title,
         checked: false,
         userId,
       });
 
-      io.to(`user_${userId}`).emit("todosUpdated", {
-        action: "create",
-        todo: newTodo,
+      const todos = await Todo.findAll({
+        where: { userId },
+        order: [["createdAt", "DESC"]],
       });
 
+      io.to(`user_${userId}`).emit("todosUpdated", todos);
       res.status(201).send(newTodo);
     } catch (err) {
       console.error("Error creating todo:", err);
@@ -57,22 +57,22 @@ export default function (io) {
     const id = Number(req.params.id);
 
     try {
-      const todo = await Todo.findOne({ where: { id } });
+      const todo = await Todo.findByPk(id);
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
+      const targetUserId = todo.userId; // Remember whose todos list to refresh
       await todo.destroy();
 
-      io.to(`user_${todo.userId}`).emit("todosUpdated", {
-        action: "delete",
-        todoId: id,
+      const todos = await Todo.findAll({
+        where: { userId: targetUserId },
+        order: [["createdAt", "DESC"]],
       });
 
+      io.to(`user_${targetUserId}`).emit("todosUpdated", todos);
       res.status(200).send({ message: "Todo deleted successfully" });
     } catch (err) {
       console.error("Error deleting todo:", err);
-      res.status(500).send({
-        error: "Faild to delete todo",
-      });
+      res.status(500).send({ error: "Failed to delete todo" });
     }
   });
 
@@ -81,29 +81,23 @@ export default function (io) {
     const { title, checked } = req.body;
 
     try {
-      const todo = await Todo.findOne({
-        where: { id },
-      });
-
-      if (!todo) {
-        return res.status(404).send({ error: "Todo not found" });
-      }
-
-      console.log("Editing todo owned by user:", todo.userId);
+      const todo = await Todo.findByPk(id);
+      if (!todo) return res.status(404).send({ error: "Todo not found" });
 
       if (typeof title === "string") todo.title = title;
       if (typeof checked === "boolean") todo.checked = checked;
 
       await todo.save();
 
-      io.to(`user_${todo.userId}`).emit("todosUpdated", {
-        action: "update",
-        todo,
+      const todos = await Todo.findAll({
+        where: { userId: todo.userId },
+        order: [["createdAt", "DESC"]],
       });
 
+      io.to(`user_${todo.userId}`).emit("todosUpdated", todos);
       res.status(200).send(todo);
     } catch (err) {
-      console.log("Error updating tools:", err);
+      console.error("Error updating todo:", err);
       res.status(500).send({ error: "Failed to update todo" });
     }
   });

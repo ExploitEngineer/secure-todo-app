@@ -1,8 +1,7 @@
-// models/index.js
 import fs from "fs";
 import path from "path";
-import Sequelize from "sequelize";
 import process from "process";
+import Sequelize from "sequelize";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +24,7 @@ if (config.use_env_variable) {
     config.database,
     config.username,
     config.password,
-    config
+    config,
   );
 }
 

@@ -1,5 +1,7 @@
 import Dashboard from "../components/dashboard";
 
-export function DashboardPage({ todos, setTodos }) {
-  return <Dashboard todos={todos} setTodos={setTodos} />;
+export function DashboardPage({ todos, setTodos, selectedUser }) {
+  return (
+    <Dashboard todos={todos} setTodos={setTodos} selectedUser={selectedUser} />
+  );
 }

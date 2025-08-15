@@ -95,7 +95,11 @@ export default function Layout() {
         {/* Right Content Area */}
         <main className="w-full flex-1 p-4 dark:bg-zinc-900">
           <SidebarTrigger className="cursor-pointer" />
-          <DashboardPage todos={todos} setTodos={setTodos} />
+          <DashboardPage
+            todos={todos}
+            setTodos={setTodos}
+            selectedUser={selectedUser}
+          />
         </main>
       </div>
     </SidebarProvider>

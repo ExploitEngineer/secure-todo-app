@@ -6,12 +6,78 @@ import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
 
-export default function Dashboard({ todos, setTodos }) {
+export default function Dashboard({ todos, setTodos, selectedUser }) {
   const socketRef = useRef(null);
 
   const [value, setValue] = useState("");
+  const [userId, setUserId] = useState();
   const navigate = useNavigate();
-  const [userId, setUserId] = useState(null);
+
+  console.log("Selected User:", selectedUser);
+
+  if (selectedUser !== null && selectedUser.isAdmin === false) {
+    setUserId(selectedUser.id);
+    console.log("Main user:", selectedUser);
+  }
+
+  const handleSetTodoUser = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/users/${userId}/todos`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title: value }),
+        },
+      );
+      if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
+      const newTodo = await res.json();
+      setTodos((prev) => [newTodo, ...prev]);
+      setValue("");
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/users/${userId}/todos/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
+      if (!res.ok) throw new Error(`Error deleting todo: ${res.statusText}`);
+      setTodos(todos.filter((item) => item.id !== id));
+    } catch (err) {
+      console.error("Error deleting todo:", err.message);
+    }
+  };
+
+  const handleTodoUpdateUser = async (id) => {
+    const newTitle = prompt("Enter new title");
+    if (!newTitle) return;
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/users/${userId}/todos/${id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title: newTitle }),
+        },
+      );
+      if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
+      const updateTodo = await res.json();
+      setTodos((prevTodos) =>
+        prevTodos.map((item) => (item.id === id ? updateTodo : item)),
+      );
+    } catch (err) {
+      console.error("Error updating todo:", err.message);
+    }
+  };
 
   useEffect(() => {
     socketRef.current = io("http://localhost:4000");
@@ -29,23 +95,6 @@ export default function Dashboard({ todos, setTodos }) {
       socketRef.current.disconnect();
     };
   }, [setTodos]);
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch("http://localhost:4000/api/users/me", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch user");
-        const data = await res.json();
-        setUserId(data.id);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    fetchUser();
-  }, []);
 
   const handleInputChange = (e) => setValue(e.target.value);
 
@@ -142,7 +191,7 @@ export default function Dashboard({ todos, setTodos }) {
           placeholder="Enter task..."
         />
         <Button
-          onClick={handleSetTodo}
+          onClick={selectedUser !== null ? handleSetTodoUser : handleSetTodo}
           className="cursor-pointer rounded-lg bg-blue-600 px-5 py-6 text-sm font-medium text-white shadow-md transition-colors duration-200 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-400"
         >
           Add Todo
@@ -160,9 +209,9 @@ export default function Dashboard({ todos, setTodos }) {
               No todos yet...
             </p>
           ) : (
-            todos.map((item) => (
+            todos.map((item, idx) => (
               <div
-                key={item.id}
+                key={idx}
                 className="flex w-full items-center justify-between rounded-lg bg-white px-4 py-3 transition-colors duration-200 hover:bg-zinc-50 dark:bg-zinc-700/60 dark:hover:bg-zinc-700"
               >
                 <div className="flex items-center gap-3">
@@ -184,7 +233,11 @@ export default function Dashboard({ todos, setTodos }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
-                    onClick={() => handleTodoUpdate(item.id)}
+                    onClick={
+                      selectedUser !== null
+                        ? () => handleTodoUpdateUser(item.id)
+                        : () => handleTodoUpdate(item.id)
+                    }
                     className="cursor-pointer bg-zinc-200 transition-transform duration-150 hover:scale-110 hover:bg-zinc-300 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   >
                     <SquarePen
@@ -193,7 +246,11 @@ export default function Dashboard({ todos, setTodos }) {
                     />
                   </Button>
                   <Button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={
+                      selectedUser !== null
+                        ? () => handleDeleteUser(item.id)
+                        : () => handleDelete(item.id)
+                    }
                     className="cursor-pointer bg-zinc-200 transition-transform duration-150 hover:scale-110 hover:bg-zinc-300 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   >
                     <Trash2 size={18} className="text-red-600" />

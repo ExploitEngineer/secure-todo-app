@@ -1,11 +1,8 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import db from "../models/index.js";
-import dotenv from "dotenv";
 
 const { User } = db;
-
-dotenv.config();
 
 const router = express.Router();
 

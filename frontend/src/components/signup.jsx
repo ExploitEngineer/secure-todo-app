@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function SignUp() {
@@ -67,14 +68,12 @@ export default function SignUp() {
           placeholder="Password"
           className="rounded-lg border border-blue-500 px-4 py-2 text-white outline-none placeholder:text-sm"
         />
-        <button
-          onClick={() => {
-            navigate("/login");
-          }}
-          className="cursor-pointer text-right text-sky-600"
-        >
-          have account login ?
-        </button>
+        <Link to="/login">
+          <button className="cursor-pointer text-right text-sky-600">
+            have account login ?
+          </button>
+        </Link>
+
         <button
           type="submit"
           className="w-full cursor-pointer rounded-lg bg-zinc-700 px-8 py-2 font-medium text-white transition-all duration-300 hover:bg-blue-600"

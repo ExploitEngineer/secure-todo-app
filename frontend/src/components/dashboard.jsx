@@ -13,6 +13,33 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
   const [userId, setUserId] = useState();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    socketRef.current = io("http://localhost:4000");
+
+    socketRef.current.on("connection_error", (err) => {
+      toast.error(`Socket connection failed: ${err.message}`);
+    });
+
+    socketRef.current.on("todosUpdated", (updatedTodos) => {
+      setTodos(updatedTodos);
+      toast.success("Todos udpate in real time.");
+    });
+
+    if (userId) {
+      socketRef.current.emit("joinOwnRoom", userId);
+    }
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, [setTodos, userId]);
+
+  useEffect(() => {
+    if (socketRef.current && selectedUser) {
+      socketRef.current.emit("joinUserRoom", selectedUser.id);
+    }
+  }, [selectedUser]);
+
   console.log("Selected User:", selectedUser);
 
   if (selectedUser !== null && selectedUser.isAdmin === false) {
@@ -29,7 +56,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ title: value }),
-        },
+        }
       );
       if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
       const newTodo = await res.json();
@@ -47,7 +74,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
         {
           method: "DELETE",
           credentials: "include",
-        },
+        }
       );
       if (!res.ok) throw new Error(`Error deleting todo: ${res.statusText}`);
       setTodos(todos.filter((item) => item.id !== id));
@@ -67,34 +94,17 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ title: newTitle }),
-        },
+        }
       );
       if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
       const updateTodo = await res.json();
       setTodos((prevTodos) =>
-        prevTodos.map((item) => (item.id === id ? updateTodo : item)),
+        prevTodos.map((item) => (item.id === id ? updateTodo : item))
       );
     } catch (err) {
       console.error("Error updating todo:", err.message);
     }
   };
-
-  useEffect(() => {
-    socketRef.current = io("http://localhost:4000");
-
-    socketRef.current.on("connection_error", (err) => {
-      toast.error(`Socket connection failed: ${err.message}`);
-    });
-
-    socketRef.current.on("todosUpdated", (updatedTodos) => {
-      setTodos(updatedTodos);
-      toast.success("Todos udpate in real time.");
-    });
-
-    return () => {
-      socketRef.current.disconnect();
-    };
-  }, [setTodos]);
 
   const handleInputChange = (e) => setValue(e.target.value);
 
@@ -117,7 +127,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
 
   const toggleCheck = (id) => {
     const updatedTodos = todos.map((item) =>
-      item.id === id ? { ...item, checked: !item.checked } : item,
+      item.id === id ? { ...item, checked: !item.checked } : item
     );
     setTodos(updatedTodos);
   };
@@ -162,7 +172,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
       if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
       const updateTodo = await res.json();
       setTodos((prevTodos) =>
-        prevTodos.map((item) => (item.id === id ? updateTodo : item)),
+        prevTodos.map((item) => (item.id === id ? updateTodo : item))
       );
     } catch (err) {
       console.error("Error updating todo:", err.message);

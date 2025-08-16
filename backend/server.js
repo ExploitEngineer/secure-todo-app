@@ -38,21 +38,22 @@ export const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("New client connected, id =", socket.id);
 
+  socket.on("joinOwnRoom", (userId) => {
+    if (!userId) return;
+    socket.join(`user_${userId}`);
+    console.log(`User user_${userId} joined their own room`);
+  });
+
   socket.on("joinUserRoom", (userId) => {
     if (!userId) return;
-    const room = `user_${userId}`;
-    socket.join(room);
-    console.log(`Socket ${socket.id} joined room ${room}`);
+    socket.join(`user_${userId}`);
+    console.log(`Joined user_${userId} to observe todos`);
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
-
-export function broadcastTodoUpdate(userId, payload) {
-  io.to(`user_${userId}`).emit("todosUpdated", payload);
-}
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

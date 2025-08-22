@@ -69,11 +69,10 @@ export default function (io) {
     }
   });
 
+  // Create todo for any user
   router.post("/:userId/todos", async (req, res) => {
-    const {
-      params: { userId },
-      body: { title },
-    } = req;
+    const { userId } = req.params;
+    const { title } = req.body;
     if (!title) return res.status(400).send({ error: "Missing title" });
 
     try {
@@ -99,35 +98,9 @@ export default function (io) {
     }
   });
 
-  router.delete("/:userId/todos/:id", async (req, res) => {
-    const { userId } = req.params;
-    const id = Number(req.params.id);
-
-    try {
-      const todo = await Todo.findByPk(id);
-      if (!todo) return res.status(404).send({ error: "Todo not found" });
-
-      await todo.destroy();
-
-      const todos = await Todo.findAll({
-        where: { userId },
-        order: [["createdAt", "DESC"]],
-      });
-
-      io.to(`user_${userId}`).emit("todosUpdated", {
-        userId,
-        todos,
-      });
-      res.status(200).send({ message: "Todo deleted successfully" });
-    } catch (err) {
-      console.error("Error deleting todo:", err);
-      res.status(500).send({ error: "Failed to delete todo" });
-    }
-  });
-
+  // Edit todo for any user
   router.patch("/:userId/todos/:id", async (req, res) => {
-    const { userId } = req.params;
-    const id = Number(req.params.id);
+    const { userId, id } = req.params;
     const { title, checked } = req.body;
 
     try {
@@ -151,6 +124,32 @@ export default function (io) {
     } catch (err) {
       console.error("Error updating todo:", err);
       res.status(500).send({ error: "Failed to update todo" });
+    }
+  });
+
+  // Delete todo for any user
+  router.delete("/:userId/todos/:id", async (req, res) => {
+    const { userId, id } = req.params;
+
+    try {
+      const todo = await Todo.findByPk(id);
+      if (!todo) return res.status(404).send({ error: "Todo not found" });
+
+      await todo.destroy();
+
+      const todos = await Todo.findAll({
+        where: { userId },
+        order: [["createdAt", "DESC"]],
+      });
+
+      io.to(`user_${userId}`).emit("todosUpdated", {
+        userId,
+        todos,
+      });
+      res.status(200).send({ message: "Todo deleted successfully" });
+    } catch (err) {
+      console.error("Error deleting todo:", err);
+      res.status(500).send({ error: "Failed to delete todo" });
     }
   });
 

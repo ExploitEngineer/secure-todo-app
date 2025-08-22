@@ -20,16 +20,28 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
       toast.error(`Socket connection failed: ${err.message}`);
     });
 
-    socketRef.current.on("todosUpdated", ({ userId: updatedUserId, todos }) => {
+    socketRef.current.on("todosUpdated", (payload) => {
+      // Only update todos if the event is for the currently viewed user
+      if (Array.isArray(payload)) {
+        // This is only for your own todos
+        if (!selectedUser) {
+          setTodos(payload);
+          toast.success("Todos updated in real time");
+        }
+        return;
+      }
+      const { userId: updatedUserId, todos } = payload;
       if (!selectedUser) {
+        // Only update if it's your own todos
         if (updatedUserId === userId) {
           setTodos(todos);
           toast.success("Your todos updated in real time");
         }
       } else {
+        // Only update if it's the selected user's todos
         if (updatedUserId === selectedUser.id) {
           setTodos(todos);
-          console.log(`Realtime update for user ${selectedUser.id}`);
+          toast.success(`Todos updated for ${selectedUser.username}`);
         }
       }
     });
@@ -48,7 +60,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
             `http://localhost:4000/api/users/${selectedUser.id}/todos`,
             {
               credentials: "include",
-            },
+            }
           );
           if (!res.ok) throw new Error("Failed to fetch user todos");
           const data = await res.json();
@@ -74,15 +86,16 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
   const handleSetTodoUser = async () => {
     try {
       const res = await fetch(
-        `http://localhost:4000/api/users/${userId}/todos`,
+        `http://localhost:4000/api/users/${selectedUser.id}/todos`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ title: value }),
-        },
+        }
       );
       if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
+      // Do NOT update local state here, just clear the input
       setValue("");
     } catch (err) {
       console.log(err.message);
@@ -96,7 +109,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
         {
           method: "DELETE",
           credentials: "include",
-        },
+        }
       );
       if (!res.ok) throw new Error(`Error deleting todo: ${res.statusText}`);
     } catch (err) {
@@ -115,7 +128,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ title: newTitle }),
-        },
+        }
       );
       if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
     } catch (err) {
@@ -142,11 +155,33 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
     }
   };
 
-  const toggleCheck = (id) => {
-    const updatedTodos = todos.map((item) =>
-      item.id === id ? { ...item, checked: !item.checked } : item,
-    );
-    setTodos(updatedTodos);
+  const toggleCheck = async (id) => {
+    const todo = todos.find((item) => item.id === id);
+    if (!todo) return;
+    try {
+      if (selectedUser !== null) {
+        await fetch(
+          `http://localhost:4000/api/users/${selectedUser.id}/todos/${id}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ checked: !todo.checked }),
+          }
+        );
+      } else {
+        await fetch(`http://localhost:4000/api/todos/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ checked: !todo.checked }),
+        });
+      }
+      // Do NOT update local state here, let socket event handle it
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to update todo status");
+    }
   };
 
   const handleLogout = async () => {
@@ -189,7 +224,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
       if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
       const updateTodo = await res.json();
       setTodos((prevTodos) =>
-        prevTodos.map((item) => (item.id === id ? updateTodo : item)),
+        prevTodos.map((item) => (item.id === id ? updateTodo : item))
       );
     } catch (err) {
       console.error("Error updating todo:", err.message);

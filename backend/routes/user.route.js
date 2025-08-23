@@ -69,7 +69,6 @@ export default function (io) {
     }
   });
 
-  // Create todo for any user
   router.post("/:userId/todos", async (req, res) => {
     const { userId } = req.params;
     const { title } = req.body;
@@ -87,10 +86,17 @@ export default function (io) {
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${userId}`).emit("todosUpdated", {
-        userId,
-        todos,
+      io.emit("todosUpdated", todos);
+
+      io.sockets.sockets.forEach((socket) => {
+        if (
+          socket.joinedUsers &&
+          socket.joinedUsers.includes(`user_${userId}`)
+        ) {
+          socket.emit("todosUpdated", { userId, todos });
+        }
       });
+
       res.status(201).send(newTodo);
     } catch (err) {
       console.error("Error creating todo:", err);
@@ -98,7 +104,6 @@ export default function (io) {
     }
   });
 
-  // Edit todo for any user
   router.patch("/:userId/todos/:id", async (req, res) => {
     const { userId, id } = req.params;
     const { title, checked } = req.body;
@@ -109,6 +114,7 @@ export default function (io) {
 
       if (typeof title === "string") todo.title = title;
       if (typeof checked === "boolean") todo.checked = checked;
+
       await todo.save();
 
       const todos = await Todo.findAll({
@@ -116,10 +122,8 @@ export default function (io) {
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${userId}`).emit("todosUpdated", {
-        userId,
-        todos,
-      });
+      io.emit("todosUpdated", todos);
+
       res.status(200).send(todo);
     } catch (err) {
       console.error("Error updating todo:", err);
@@ -127,25 +131,22 @@ export default function (io) {
     }
   });
 
-  // Delete todo for any user
   router.delete("/:userId/todos/:id", async (req, res) => {
     const { userId, id } = req.params;
 
     try {
-      const todo = await Todo.findByPk(id);
+      const todo = await Todo.findOne({
+        where: { id: Number(id), userId: Number(userId) },
+      });
+
       if (!todo) return res.status(404).send({ error: "Todo not found" });
 
       await todo.destroy();
 
-      const todos = await Todo.findAll({
-        where: { userId },
-        order: [["createdAt", "DESC"]],
-      });
+      // Emit all todos to everyone
+      const todos = await Todo.findAll({ order: [["createdAt", "DESC"]] });
+      io.emit("todosUpdated", todos);
 
-      io.to(`user_${userId}`).emit("todosUpdated", {
-        userId,
-        todos,
-      });
       res.status(200).send({ message: "Todo deleted successfully" });
     } catch (err) {
       console.error("Error deleting todo:", err);

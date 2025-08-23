@@ -8,206 +8,112 @@ import toast from "react-hot-toast";
 
 export default function Dashboard({ todos, setTodos, selectedUser }) {
   const socketRef = useRef(null);
-
+  const selectedUserRef = useRef(selectedUser);
   const [value, setValue] = useState("");
-  const [userId, setUserId] = useState();
   const navigate = useNavigate();
+  const [myUserId, setMyUserId] = useState(null);
 
   useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/users/me", {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch user");
+        const data = await res.json();
+        setMyUserId(data.id);
+      } catch (err) {
+        console.error("Failed to fetch current user:", err);
+      }
+    };
+    fetchMe();
+  }, []);
+
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if (!myUserId) return;
     socketRef.current = io("http://localhost:4000");
 
-    socketRef.current.on("connection_error", (err) => {
+    socketRef.current.on("connect_error", (err) => {
       toast.error(`Socket connection failed: ${err.message}`);
     });
 
-    socketRef.current.on("todosUpdated", (payload) => {
-      // Only update todos if the event is for the currently viewed user
-      if (Array.isArray(payload)) {
-        // This is only for your own todos
-        if (!selectedUser) {
-          setTodos(payload);
-          toast.success("Todos updated in real time");
-        }
-        return;
-      }
-      const { userId: updatedUserId, todos } = payload;
-      if (!selectedUser) {
-        // Only update if it's your own todos
-        if (updatedUserId === userId) {
-          setTodos(todos);
-          toast.success("Your todos updated in real time");
-        }
-      } else {
-        // Only update if it's the selected user's todos
-        if (updatedUserId === selectedUser.id) {
-          setTodos(todos);
-          toast.success(`Todos updated for ${selectedUser.username}`);
-        }
-      }
+    socketRef.current.on("todosUpdated", (allTodos) => {
+      if (!allTodos) return;
+
+      setTodos((prevTodos) => {
+        const filteredTodos = selectedUserRef.current
+          ? allTodos.filter((t) => t.userId === selectedUserRef.current.id)
+          : allTodos.filter((t) => t.userId === myUserId);
+
+        if (JSON.stringify(prevTodos) === JSON.stringify(filteredTodos))
+          return prevTodos;
+
+        return filteredTodos;
+      });
     });
 
-    return () => {
-      socketRef.current.disconnect();
+    return () => socketRef.current.disconnect();
+  }, [myUserId]);
+
+  useEffect(() => {
+    const fetchUserTodos = async () => {
+      if (!selectedUser) return;
+      try {
+        const res = await fetch(
+          `http://localhost:4000/api/users/${selectedUser.id}/todos`,
+          { credentials: "include" },
+        );
+        if (!res.ok) throw new Error("Failed to fetch user todos");
+        const data = await res.json();
+        setTodos(data || []);
+      } catch (err) {
+        setTodos([]);
+        console.error("Error fetching user todos:", err.message);
+      }
     };
-  }, [setTodos, userId, selectedUser]);
-
-  useEffect(() => {
-    if (selectedUser) {
-      socketRef.current.emit("joinUserRoom", selectedUser.id);
-      const fetchUserTodos = async () => {
-        try {
-          const res = await fetch(
-            `http://localhost:4000/api/users/${selectedUser.id}/todos`,
-            {
-              credentials: "include",
-            }
-          );
-          if (!res.ok) throw new Error("Failed to fetch user todos");
-          const data = await res.json();
-          setTodos(data);
-        } catch (err) {
-          console.error("Error fetching user todos:", err.message);
-        }
-      };
-
-      fetchUserTodos();
-    }
+    fetchUserTodos();
   }, [selectedUser]);
 
-  console.log("Selected User:", selectedUser);
+  const safeTodos = todos || [];
 
-  useEffect(() => {
-    if (selectedUser && selectedUser.isAdmin === false) {
-      setUserId(selectedUser.id);
-      console.log("Main user:", selectedUser);
-    }
-  }, [selectedUser]);
+  const handleInputChange = (e) => setValue(e.target.value);
 
-  const handleSetTodoUser = async () => {
+  const handleSetTodo = async () => {
+    if (!value) return;
     try {
-      const res = await fetch(
-        `http://localhost:4000/api/users/${selectedUser.id}/todos`,
+      await fetch(
+        selectedUser
+          ? `http://localhost:4000/api/users/${selectedUser.id}/todos`
+          : `http://localhost:4000/api/todos`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ title: value }),
-        }
+        },
       );
-      if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
-      // Do NOT update local state here, just clear the input
       setValue("");
     } catch (err) {
-      console.log(err.message);
-    }
-  };
-
-  const handleDeleteUser = async (id) => {
-    try {
-      const res = await fetch(
-        `http://localhost:4000/api/users/${userId}/todos/${id}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
-      if (!res.ok) throw new Error(`Error deleting todo: ${res.statusText}`);
-    } catch (err) {
-      console.error("Error deleting todo:", err.message);
-    }
-  };
-
-  const handleTodoUpdateUser = async (id) => {
-    const newTitle = prompt("Enter new title");
-    if (!newTitle) return;
-    try {
-      const res = await fetch(
-        `http://localhost:4000/api/users/${userId}/todos/${id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ title: newTitle }),
-        }
-      );
-      if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
-    } catch (err) {
-      console.error("Error updating todo:", err.message);
-    }
-  };
-
-  const handleInputChange = (e) => setValue(e.target.value);
-
-  const handleSetTodo = async () => {
-    try {
-      const res = await fetch(`http://localhost:4000/api/todos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title: value }),
-      });
-      if (!res.ok) throw new Error(`Error creating todo: ${res.statusText}`);
-      const newTodo = await res.json();
-      setTodos((prev) => [newTodo, ...prev]);
-      setValue("");
-    } catch (err) {
-      console.log(err.message);
-    }
-  };
-
-  const toggleCheck = async (id) => {
-    const todo = todos.find((item) => item.id === id);
-    if (!todo) return;
-    try {
-      if (selectedUser !== null) {
-        await fetch(
-          `http://localhost:4000/api/users/${selectedUser.id}/todos/${id}`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ checked: !todo.checked }),
-          }
-        );
-      } else {
-        await fetch(`http://localhost:4000/api/todos/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ checked: !todo.checked }),
-        });
-      }
-      // Do NOT update local state here, let socket event handle it
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to update todo status");
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("http://localhost:4000/logout", {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok)
-        throw new Error(`Error logging out: ${response.statusText}`);
-      navigate("/login");
-    } catch (err) {
-      console.error("Error during logout:", err.message);
+      console.error(err);
+      toast.error("Failed to create todo");
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/todos/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(`Error deleting todo: ${res.statusText}`);
-      setTodos(todos.filter((item) => item.id !== id));
+      await fetch(
+        selectedUser
+          ? `http://localhost:4000/api/users/${selectedUser.id}/todos/${id}`
+          : `http://localhost:4000/api/todos/${id}`,
+        { method: "DELETE", credentials: "include" },
+      );
     } catch (err) {
-      console.error("Error deleting todo:", err.message);
+      console.error(err);
+      toast.error("Failed to delete todo");
     }
   };
 
@@ -215,19 +121,55 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
     const newTitle = prompt("Enter new title");
     if (!newTitle) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/todos/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title: newTitle }),
-      });
-      if (!res.ok) throw new Error(`Failed to update todo: ${res.statusText}`);
-      const updateTodo = await res.json();
-      setTodos((prevTodos) =>
-        prevTodos.map((item) => (item.id === id ? updateTodo : item))
+      await fetch(
+        selectedUser
+          ? `http://localhost:4000/api/users/${selectedUser.id}/todos/${id}`
+          : `http://localhost:4000/api/todos/${id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title: newTitle }),
+        },
       );
     } catch (err) {
-      console.error("Error updating todo:", err.message);
+      console.error(err);
+      toast.error("Failed to update todo");
+    }
+  };
+
+  const toggleCheck = async (id) => {
+    const todo = todos.find((item) => item.id === id);
+    if (!todo) return;
+
+    try {
+      await fetch(
+        selectedUser
+          ? `http://localhost:4000/api/users/${selectedUser.id}/todos/${id}`
+          : `http://localhost:4000/api/todos/${id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ checked: !todo.checked }),
+        },
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update todo status");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/logout", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Logout failed");
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -253,7 +195,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
           placeholder="Enter task..."
         />
         <Button
-          onClick={selectedUser !== null ? handleSetTodoUser : handleSetTodo}
+          onClick={handleSetTodo}
           className="cursor-pointer rounded-lg bg-blue-600 px-5 py-6 text-sm font-medium text-white shadow-md transition-colors duration-200 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-400"
         >
           Add Todo
@@ -266,12 +208,12 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
           Todos
         </h2>
         <div className="custom-scrollbar flex max-h-[300px] w-full flex-col gap-3 overflow-y-auto pr-1">
-          {todos.length === 0 ? (
+          {safeTodos.length === 0 ? (
             <p className="py-4 text-center text-sm font-medium text-zinc-500 dark:text-zinc-400">
               No todos yet...
             </p>
           ) : (
-            todos.map((item, idx) => (
+            safeTodos.map((item, idx) => (
               <div
                 key={idx}
                 className="flex w-full items-center justify-between rounded-lg bg-white px-4 py-3 transition-colors duration-200 hover:bg-zinc-50 dark:bg-zinc-700/60 dark:hover:bg-zinc-700"
@@ -295,11 +237,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
-                    onClick={
-                      selectedUser !== null
-                        ? () => handleTodoUpdateUser(item.id)
-                        : () => handleTodoUpdate(item.id)
-                    }
+                    onClick={() => handleTodoUpdate(item.id)}
                     className="cursor-pointer bg-zinc-200 transition-transform duration-150 hover:scale-110 hover:bg-zinc-300 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   >
                     <SquarePen
@@ -308,11 +246,7 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
                     />
                   </Button>
                   <Button
-                    onClick={
-                      selectedUser !== null
-                        ? () => handleDeleteUser(item.id)
-                        : () => handleDelete(item.id)
-                    }
+                    onClick={() => handleDelete(item.id)}
                     className="cursor-pointer bg-zinc-200 transition-transform duration-150 hover:scale-110 hover:bg-zinc-300 dark:bg-zinc-900 dark:hover:bg-zinc-800"
                   >
                     <Trash2 size={18} className="text-red-600" />
@@ -324,7 +258,6 @@ export default function Dashboard({ todos, setTodos, selectedUser }) {
         </div>
       </div>
 
-      {/* Logout Button */}
       <Button
         onClick={handleLogout}
         className="fixed right-8 bottom-8 cursor-pointer rounded-lg bg-red-600 px-6 py-5 text-sm font-medium text-white shadow-lg transition-colors duration-200 hover:bg-red-500"

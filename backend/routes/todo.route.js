@@ -44,7 +44,7 @@ export default function (io) {
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${req.user.id}`).emit("todosUpdated", todos);
+      io.emit("todosUpdated", todos);
       res.status(201).send(newTodo);
     } catch (err) {
       console.error("Error creating todo:", err);
@@ -66,7 +66,7 @@ export default function (io) {
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${req.user.id}`).emit("todosUpdated", todos);
+      io.emit("todosUpdated", todos);
       res.status(200).send({ message: "Todo deleted successfully" });
     } catch (err) {
       console.error("Error deleting todo:", err);
@@ -92,7 +92,7 @@ export default function (io) {
         order: [["createdAt", "DESC"]],
       });
 
-      io.to(`user_${req.user.id}`).emit("todosUpdated", todos);
+      io.emit("todosUpdated", todos);
       res.status(200).send(todo);
     } catch (err) {
       console.error("Error updating todo:", err);

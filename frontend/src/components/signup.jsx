@@ -1,5 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function SignUp() {
@@ -14,7 +13,7 @@ export default function SignUp() {
 
     if (username && email && password) {
       try {
-        const response = await fetch("http://127.0.0.1:4000/signup", {
+        const response = await fetch("http://localhost:4000/signup", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
